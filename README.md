@@ -91,7 +91,7 @@ $ opm install my-package
 
 # Доверенная публикация из CI
 
-Конвейер GitHub Actions или GitLab CI публикует пакет без токена: `opm push --oidc` берёт у конвейера
+Конвейер GitHub Actions или GitLab CI публикует пакет без токена: `opm push --trusted` берёт у конвейера
 OIDC id-token и отправляет его хабу вместо токена, а хаб сверяет его с записью доверия пакета.
 Запись доверия (провайдер, репозиторий, при необходимости конвейер и ref) заводится на странице пакета в хабе.
 
@@ -108,10 +108,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: otymko/setup-onescript@v1.5.1
       - run: opm install -l && opm build .
-      - run: opm push --hub https://hub.example.com/corp --oidc my-package-1.0.0.ospx
+      - run: opm push --hub https://hub.example.com/corp --trusted my-package-1.0.0.ospx
 ```
 
-GitLab CI кладёт id-token в переменную, названную в блоке `id_tokens`; её имя передаётся опцией `--oidc-token-var`:
+GitLab CI кладёт id-token в переменную, названную в блоке `id_tokens`; её имя передаётся опцией `--trusted-token-var`:
 
 ```yaml
 publish:
@@ -120,12 +120,12 @@ publish:
       aud: https://hub.example.com
   script:
     - opm install -l && opm build .
-    - opm push --hub https://hub.example.com/corp --oidc --oidc-token-var OPENHUB_TOKEN my-package-1.0.0.ospx
+    - opm push --hub https://hub.example.com/corp --trusted --trusted-token-var OPENHUB_TOKEN my-package-1.0.0.ospx
 ```
 
 * В GitHub Actions id-token запрашивается с аудиторией, равной адресу хаба (`https://hub.example.com`);
-  другую аудиторию задаёт `--oidc-audience`. В GitLab CI аудиторию задаёт `aud` в блоке `id_tokens`.
-* С `--oidc` токен из `--token` и настройки `ТокенПубликацииПакетов` не отправляется.
+  другую аудиторию задаёт `--trusted-audience`. В GitLab CI аудиторию задаёт `aud` в блоке `id_tokens`.
+* С `--trusted` токен из `--token` и настройки `ТокенПубликацииПакетов` не отправляется.
 * Конвейер не выдал id-token — opm отказывает и называет, чего не хватает: `permissions: id-token: write`
   в GitHub Actions, блока `id_tokens` в GitLab CI.
 * Подпись id-token и запись доверия проверяет хаб; отказ хаба opm показывает его сообщением.
