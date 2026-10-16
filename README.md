@@ -89,6 +89,47 @@ $ opm install my-package
 и при расхождении отказывает в установке, не записывая файл. Ответ без заголовка (хаб без его поддержки,
 файловый сервер) не сверяется.
 
+# Доверенная публикация из CI
+
+Конвейер GitHub Actions или GitLab CI публикует пакет без токена: `opm push --oidc` берёт у конвейера
+OIDC id-token и отправляет его хабу вместо токена, а хаб сверяет его с записью доверия пакета.
+Запись доверия (провайдер, репозиторий, при необходимости конвейер и ref) заводится на странице пакета в хабе.
+
+GitHub Actions выдаёт id-token конвейеру с разрешением `id-token: write`:
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: otymko/setup-onescript@v1.5.1
+      - run: opm install -l && opm build .
+      - run: opm push --hub https://hub.example.com/corp --oidc my-package-1.0.0.ospx
+```
+
+GitLab CI кладёт id-token в переменную, названную в блоке `id_tokens`; её имя передаётся опцией `--oidc-token-var`:
+
+```yaml
+publish:
+  id_tokens:
+    OPENHUB_TOKEN:
+      aud: https://hub.example.com
+  script:
+    - opm install -l && opm build .
+    - opm push --hub https://hub.example.com/corp --oidc --oidc-token-var OPENHUB_TOKEN my-package-1.0.0.ospx
+```
+
+* В GitHub Actions id-token запрашивается с аудиторией, равной адресу хаба (`https://hub.example.com`);
+  другую аудиторию задаёт `--oidc-audience`. В GitLab CI аудиторию задаёт `aud` в блоке `id_tokens`.
+* С `--oidc` токен из `--token` и настройки `ТокенПубликацииПакетов` не отправляется.
+* Конвейер не выдал id-token — opm отказывает и называет, чего не хватает: `permissions: id-token: write`
+  в GitHub Actions, блока `id_tokens` в GitLab CI.
+* Подпись id-token и запись доверия проверяет хаб; отказ хаба opm показывает его сообщением.
+
 # Сервера
 В настоящее время пакеты хранятся на двух серверах:
 - [hub.oscript.io](http://hub.oscript.io/download) - основной хаб пакетов
