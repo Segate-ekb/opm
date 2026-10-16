@@ -30,6 +30,7 @@ opm install localhost:3380/corp/my-package@stable   # хост, порт, пул
 opm install hub.example.com/asserts                 # пакет в пуле хаба по умолчанию
 opm install https://hub.example.com/public/asserts  # схема указана явно
 opm install --hub localhost:3380 --pool corp my-package@stable
+opm install --hub localhost:3380 --all-pools my-package@stable   # версию выбирает хаб по всем доступным пулам
 opm push --hub localhost:3380 --pool corp my-package-1.0.0.ospx
 opm push --hub https://hub.example.com --token <токен> my-package-1.0.0.ospx
 ```
@@ -38,6 +39,8 @@ opm push --hub https://hub.example.com --token <токен> my-package-1.0.0.osp
 
 * В адресе пакета последний сегмент пути — пакет, сегмент перед ним — пул; без пула — пул хаба по умолчанию.
   Зависимости пакета ставятся с того же сервера, у `install --hub` — с хаба из опций.
+* `install --all-pools` просит хаб выбрать версию по всем пулам, открытым токену (без токена — по публичным):
+  адреса `/api/v1/download/<пакет>/<файл>` с теми же `spec` и `engine`; с `--pool` не сочетается.
 * Отказ: путь в `--hub`, адрес пакета вместе с `--hub`, `install --hub` вместе с `-a`, `-f`, `-u`, `-m`.
 * Строка считается адресом, если в ней есть схема либо путь после хоста с портом, с точкой в имени
   или `localhost`. Остальное — имя пакета.
