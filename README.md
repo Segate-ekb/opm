@@ -111,7 +111,7 @@ jobs:
       - run: opm push --hub https://hub.example.com/corp --trusted my-package-1.0.0.ospx
 ```
 
-GitLab CI кладёт id-token в переменную, названную в блоке `id_tokens`; её имя передаётся опцией `--trusted-token-var`:
+GitLab CI кладёт id-token в переменную блока `id_tokens`; opm читает её под именем `OPENHUB_TOKEN`:
 
 ```yaml
 publish:
@@ -120,14 +120,14 @@ publish:
       aud: https://hub.example.com
   script:
     - opm install -l && opm build .
-    - opm push --hub https://hub.example.com/corp --trusted --trusted-token-var OPENHUB_TOKEN my-package-1.0.0.ospx
+    - opm push --hub https://hub.example.com/corp --trusted my-package-1.0.0.ospx
 ```
 
 * В GitHub Actions id-token запрашивается с аудиторией, равной адресу хаба (`https://hub.example.com`);
   другую аудиторию задаёт `--trusted-audience`. В GitLab CI аудиторию задаёт `aud` в блоке `id_tokens`.
 * С `--trusted` токен из `--token` и настройки `ТокенПубликацииПакетов` не отправляется.
 * Конвейер не выдал id-token — opm отказывает и называет, чего не хватает: `permissions: id-token: write`
-  в GitHub Actions, блока `id_tokens` в GitLab CI.
+  в GitHub Actions, переменной `OPENHUB_TOKEN` в блоке `id_tokens` в GitLab CI.
 * Подпись id-token и запись доверия проверяет хаб; отказ хаба opm показывает его сообщением.
 
 # Сервера
